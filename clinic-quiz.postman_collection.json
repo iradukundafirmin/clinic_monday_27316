@@ -1,0 +1,528 @@
+{
+  "info": {
+    "_postman_id": "c6a7e9b0-9b7d-4e5e-8f6a-4b7b4d0b6d11",
+    "name": "Clinic Assignment A1-C4 Tests",
+    "description": "Postman collection for Clinic Spring Boot assignment requirements A1-A4, B1-B4 and C1-C4. Start the application on port 8082. Setup requests discover UUIDs from the running database.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8082"
+    },
+    {
+      "key": "doctorId",
+      "value": ""
+    },
+    {
+      "key": "patientId",
+      "value": ""
+    },
+    {
+      "key": "missingDoctorId",
+      "value": "00000000-0000-0000-0000-000000000000"
+    }
+  ],
+  "item": [
+    {
+      "name": "Setup - Discover IDs",
+      "item": [
+        {
+          "name": "Get doctors and store first doctor ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/all",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "doctors",
+                "all"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const data = pm.response.json();",
+                  "pm.expect(data).to.be.an(\"array\");",
+                  "if (data.length) pm.collectionVariables.set(\"doctorId\", data[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get patients and store first patient ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/patients/all",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "patients",
+                "all"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const data = pm.response.json();",
+                  "pm.expect(data).to.be.an(\"array\");",
+                  "if (data.length) pm.collectionVariables.set(\"patientId\", data[0].id);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "A - Derived queries and double booking",
+      "item": [
+        {
+          "name": "A1 Patients by last name",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/patients/by-last-name?lastName=uwase",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "patients",
+                "by-last-name?lastName=uwase"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const data=pm.response.json();",
+                  "pm.expect(data).to.be.an(\"array\");",
+                  "for(let i=1;i<data.length;i++) pm.expect(data[i-1].firstName.toLowerCase() <= data[i].firstName.toLowerCase()).to.eql(true);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A2 Appointments by status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/by-status?status=SCHEDULED",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "appointments",
+                "by-status?status=SCHEDULED"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const data=pm.response.json();",
+                  "pm.expect(data).to.be.an(\"array\");",
+                  "for(const a of data) pm.expect(a.status).to.eql(\"SCHEDULED\");",
+                  "for(let i=1;i<data.length;i++) pm.expect(data[i-1].appointmentDate <= data[i].appointmentDate).to.eql(true);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A3 Appointments between inclusive dates",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/between?start=2026-10-01&end=2026-10-31",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "appointments",
+                "between?start=2026-10-01&end=2026-10-31"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const data=pm.response.json();",
+                  "pm.expect(data).to.be.an(\"array\");",
+                  "for(const a of data){pm.expect(a.appointmentDate >= \"2026-10-01\").to.eql(true);pm.expect(a.appointmentDate <= \"2026-10-31\").to.eql(true);}",
+                  "for(let i=1;i<data.length;i++) pm.expect(data[i-1].appointmentDate <= data[i].appointmentDate).to.eql(true);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A4 Double booking returns 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/save",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "appointments",
+                "save"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"appointmentDate\": \"2026-10-15\",\n  \"reason\": \"Double booking test\",\n  \"status\": \"SCHEDULED\",\n  \"patient\": {\n    \"id\": \"{{patientId}}\"\n  },\n  \"doctor\": {\n    \"id\": \"{{doctorId}}\"\n  }\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 409\", () => pm.response.to.have.status(409));",
+                  "pm.expect(pm.response.text()).to.eql(\"Doctor is already booked on that date\");"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "B - JPQL queries",
+      "item": [
+        {
+          "name": "B1 Doctors by specialization",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/by-specialization?name=cardiology",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "doctors",
+                "by-specialization?name=cardiology"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.expect(pm.response.json()).to.be.an(\"array\");"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "B2 Doctors without office",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/without-office",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "doctors",
+                "without-office"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const data=pm.response.json();pm.expect(data).to.be.an(\"array\");",
+                  "for(let i=1;i<data.length;i++) pm.expect(data[i-1].lastName <= data[i].lastName).to.eql(true);",
+                  "for(const d of data) pm.expect(d.office).to.eql(null);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "B3 Unused specializations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/specializations/unused",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "specializations",
+                "unused"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const data=pm.response.json();pm.expect(data).to.be.an(\"array\");",
+                  "pm.expect(data.map(x=>x.name)).to.include(\"Neurology\");"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "B4 Patients of doctor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/patients/of-doctor/{{doctorId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "patients",
+                "of-doctor",
+                "{{doctorId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const data=pm.response.json();pm.expect(data).to.be.an(\"array\");",
+                  "const ids=data.map(x=>x.id);pm.expect(new Set(ids).size).to.eql(ids.length);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "B4 Missing doctor returns 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/patients/of-doctor/{{missingDoctorId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "patients",
+                "of-doctor",
+                "{{missingDoctorId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));",
+                  "pm.expect(pm.response.text()).to.eql(\"The doctor with that id does not exist\");"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "C - Aggregation and update queries",
+      "item": [
+        {
+          "name": "C1 Appointment counts by status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/stats/by-status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "appointments",
+                "stats",
+                "by-status"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const data=pm.response.json();pm.expect(data).to.be.an(\"array\");",
+                  "for(const row of data){pm.expect(row).to.be.an(\"array\");pm.expect(row.length).to.eql(2);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C2 Frequent patients min 3",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/patients/frequent?min=3",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "patients",
+                "frequent?min=3"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.expect(pm.response.json()).to.be.an(\"array\");"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C3 Busiest office",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/offices/busiest",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "offices",
+                "busiest"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const text=pm.response.text();",
+                  "if(text !== \"No appointments yet\"){const row=pm.response.json();pm.expect(row).to.be.an(\"array\");pm.expect(row.length).to.eql(3);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C4 Cancel doctor day",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/cancel-day?doctorId={{doctorId}}&date=2026-10-20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "appointments",
+                "cancel-day?doctorId={{doctorId}}&date=2026-10-20"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.expect(pm.response.text()).to.match(/^\\d+ appointments cancelled$/);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
