@@ -1,0 +1,452 @@
+{
+  "info": {
+    "_postman_id": "a43c90b1-2bfa-4b2d-9d11-20261013a1d4",
+    "name": "Clinic Requirements A1-D4",
+    "description": "Quiz 2 Postman Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "A1",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/doctors/{{doctorId}}/specializations/{{specializationIdToAdd}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "doctors",
+            "{{doctorId}}",
+            "specializations",
+            "{{specializationIdToAdd}}"
+          ]
+        },
+        "description": "Add specialization to a doctor. Expected 200; use existing UUIDs. Repeat to test 409."
+      }
+    },
+    {
+      "name": "A2",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/doctors/{{doctorId}}/specializations/{{specializationIdToRemove}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "doctors",
+            "{{doctorId}}",
+            "specializations",
+            "{{specializationIdToRemove}}"
+          ]
+        },
+        "description": "Remove only the doctor-specialization link. Expected 200; test missing IDs and absent link for errors."
+      }
+    },
+    {
+      "name": "A3",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/offices/free",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "offices",
+            "free"
+          ]
+        },
+        "description": "Returns offices without a doctor, sorted by office number. Seed office 104 as free."
+      }
+    },
+    {
+      "name": "A4",
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/doctors/{{doctorId}}/office?officeNumber=104",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "doctors",
+            "{{doctorId}}",
+            "office"
+          ],
+          "query": [
+            {
+              "key": "officeNumber",
+              "value": "104"
+            }
+          ]
+        },
+        "description": "Move doctor to office 104. It must be free; afterwards check A3 to see old office is free."
+      }
+    },
+    {
+      "name": "B1",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/appointments/save",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "appointments",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"appointmentDate\": \"2026-10-31\",\n  \"reason\": \"Safe booking test\",\n  \"status\": \"COMPLETED\",\n  \"patient\": {\n    \"id\": \"{{patientId}}\"\n  },\n  \"doctor\": {\n    \"id\": \"{{doctorId}}\"\n  }\n}"
+        },
+        "description": "Safe booking: rejects past dates and forces new appointments to SCHEDULED. Pick a date the doctor is not booked."
+      }
+    },
+    {
+      "name": "B2",
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/appointments/{{appointmentId}}/status?status=CONFIRMED",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "appointments",
+            "{{appointmentId}}",
+            "status"
+          ],
+          "query": [
+            {
+              "key": "status",
+              "value": "CONFIRMED"
+            }
+          ]
+        },
+        "description": "Change appointment status. Change status query value to CONFIRMED, CANCELLED, or COMPLETED to test allowed and rejected transitions."
+      }
+    },
+    {
+      "name": "B3",
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/appointments/{{appointmentId}}/reschedule?newDate=2026-10-30",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "appointments",
+            "{{appointmentId}}",
+            "reschedule"
+          ],
+          "query": [
+            {
+              "key": "newDate",
+              "value": "2026-10-30"
+            }
+          ]
+        },
+        "description": "Reschedule a non-final appointment to a future date that is not already booked by its doctor."
+      }
+    },
+    {
+      "name": "C1",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/prescriptions/save?appointmentId={{completedAppointmentId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "prescriptions",
+            "save"
+          ],
+          "query": [
+            {
+              "key": "appointmentId",
+              "value": "{{completedAppointmentId}}"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"medicineName\": \"Amoxicillin\",\n  \"dosage\": \"1 tablet, 3 times a day\",\n  \"durationDays\": 7\n}"
+        },
+        "description": "Use a COMPLETED appointment UUID. Expected 201 and \u201cPrescription saved successfully\u201d."
+      }
+    },
+    {
+      "name": "C2",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/prescriptions/appointment/{{appointmentId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "prescriptions",
+            "appointment",
+            "{{appointmentId}}"
+          ]
+        },
+        "description": "List prescriptions for an appointment; empty list if none. Appointment must exist."
+      }
+    },
+    {
+      "name": "C3",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/prescriptions/patient/{{ssNumber}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "prescriptions",
+            "patient",
+            "{{ssNumber}}"
+          ]
+        },
+        "description": "Prescription history for a patient, newest first. Use the patient ssNumber."
+      }
+    },
+    {
+      "name": "C4 - Update",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/prescriptions/update/{{prescriptionId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "prescriptions",
+            "update",
+            "{{prescriptionId}}"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"medicineName\": \"Amoxicillin\",\n  \"dosage\": \"1 tablet, 2 times a day\",\n  \"durationDays\": 5\n}"
+        },
+        "description": "Updates only medicineName, dosage and durationDays."
+      }
+    },
+    {
+      "name": "C4 - Delete",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/prescriptions/delete/{{prescriptionId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "prescriptions",
+            "delete",
+            "{{prescriptionId}}"
+          ]
+        },
+        "description": "Deletes a prescription. Expected 200; use an existing prescription UUID."
+      }
+    },
+    {
+      "name": "C4 - Protect appointment deletion",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/appointments/delete/{{appointmentWithPrescriptionId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "appointments",
+            "delete",
+            "{{appointmentWithPrescriptionId}}"
+          ]
+        },
+        "description": "Expected 409 if appointment still has prescriptions. Delete its prescriptions first to allow deletion."
+      }
+    },
+    {
+      "name": "D1",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/doctors/{{doctorId}}/agenda?date=2026-10-20",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "doctors",
+            "{{doctorId}}",
+            "agenda"
+          ],
+          "query": [
+            {
+              "key": "date",
+              "value": "2026-10-20"
+            }
+          ]
+        },
+        "description": "Doctor agenda for a day, excluding CANCELLED appointments."
+      }
+    },
+    {
+      "name": "D2",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/patients/{{ssNumber}}/upcoming",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "patients",
+            "{{ssNumber}}",
+            "upcoming"
+          ]
+        },
+        "description": "Upcoming appointments for patient ssNumber, soonest first."
+      }
+    },
+    {
+      "name": "D3",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/doctors/search?name=gis",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "doctors",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "name",
+              "value": "gis"
+            }
+          ]
+        },
+        "description": "Search doctors by first or last name, case-insensitive. Example \u201cgis\u201d can match Mugisha."
+      }
+    },
+    {
+      "name": "D4",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/dashboard/summary",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "dashboard",
+            "summary"
+          ]
+        },
+        "description": "Dashboard counts: patients, doctors, free offices, today\u2019s appointments, scheduled appointments, prescriptions."
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8082"
+    },
+    {
+      "key": "doctorId",
+      "value": "PASTE_DOCTOR_UUID"
+    },
+    {
+      "key": "specializationIdToAdd",
+      "value": "PASTE_SPECIALIZATION_UUID_TO_ADD"
+    },
+    {
+      "key": "specializationIdToRemove",
+      "value": "PASTE_SPECIALIZATION_UUID_TO_REMOVE"
+    },
+    {
+      "key": "patientId",
+      "value": "PASTE_PATIENT_UUID"
+    },
+    {
+      "key": "ssNumber",
+      "value": "RW-SS-1001"
+    },
+    {
+      "key": "appointmentId",
+      "value": "PASTE_APPOINTMENT_UUID"
+    },
+    {
+      "key": "completedAppointmentId",
+      "value": "PASTE_COMPLETED_APPOINTMENT_UUID"
+    },
+    {
+      "key": "prescriptionId",
+      "value": "PASTE_PRESCRIPTION_UUID"
+    },
+    {
+      "key": "appointmentWithPrescriptionId",
+      "value": "PASTE_APPOINTMENT_WITH_PRESCRIPTION_UUID"
+    }
+  ]
+}
