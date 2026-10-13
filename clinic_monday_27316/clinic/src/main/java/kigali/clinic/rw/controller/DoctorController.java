@@ -7,6 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import java.time.LocalDate;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -36,6 +38,34 @@ public class DoctorController {
         return new ResponseEntity<>(returnedMessage, HttpStatus.CONFLICT);
     }
 
+    @DeleteMapping(value = "/{doctorId}/specializations/{specializationId}")
+    public ResponseEntity<?> removeSpecialization(@PathVariable UUID doctorId, @PathVariable UUID specializationId) {
+        String message = docServe.removeSpecialization(doctorId, specializationId);
+        if (message.equals("Specialization removed from the doctor")) return new ResponseEntity<>(message, HttpStatus.OK);
+        if (message.equals("The doctor does not have that specialization")) return new ResponseEntity<>(message, HttpStatus.CONFLICT);
+        return new ResponseEntity<>(message, HttpStatus.NOT_FOUND);
+    }
+
+    @PatchMapping("/{doctorId}/office")
+    public ResponseEntity<?> moveOffice(@PathVariable UUID doctorId, @RequestParam int officeNumber) {
+        String message = docServe.moveDoctorToOffice(doctorId, officeNumber);
+        if (message.equals("Office changed successfully")) return new ResponseEntity<>(message, HttpStatus.OK);
+        if (message.equals("That office is taken by other doctor")) return new ResponseEntity<>(message, HttpStatus.CONFLICT);
+        return new ResponseEntity<>(message, HttpStatus.NOT_FOUND);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<?> search(@RequestParam String name) {
+        return new ResponseEntity<>(docServe.searchDoctors(name), HttpStatus.OK);
+    }
+
+    @GetMapping("/{doctorId}/agenda")
+    public ResponseEntity<?> agenda(@PathVariable UUID doctorId, @RequestParam String date) {
+        Object result = docServe.getAgenda(doctorId, LocalDate.parse(date));
+        if (result instanceof String) return new ResponseEntity<>(result, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
     @GetMapping(value = "/all")
     public ResponseEntity<?> getAllDoctors() {
         return new ResponseEntity<>(docServe.getAllDoctors(), HttpStatus.OK);
@@ -49,6 +79,20 @@ public class DoctorController {
     @GetMapping(value = "/without-office")
     public ResponseEntity<?> getDoctorsWithoutOffice() {
         return new ResponseEntity<>(docServe.findDoctorsWithoutOffice(), HttpStatus.OK);
+    }
+
+    @PutMapping(value = "/{doctorId}/specializations/{specializationId}")
+    public ResponseEntity<?> addSpecialization(
+            @PathVariable UUID doctorId,
+            @PathVariable UUID specializationId) {
+        String message = docServe.addSpecialization(doctorId, specializationId);
+        if (message.equals("Specialization added to the doctor")) {
+            return new ResponseEntity<>(message, HttpStatus.OK);
+        }
+        if (message.equals("The doctor already has that specialization")) {
+            return new ResponseEntity<>(message, HttpStatus.CONFLICT);
+        }
+        return new ResponseEntity<>(message, HttpStatus.NOT_FOUND);
     }
 
     @GetMapping(value = "/{id}")

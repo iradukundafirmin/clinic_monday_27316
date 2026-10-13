@@ -37,6 +37,11 @@ public class OfficeController {
         return new ResponseEntity<>(returnedMessage, HttpStatus.CONFLICT);
     }
 
+    @GetMapping("/free")
+    public ResponseEntity<?> getFreeOffices() {
+        return new ResponseEntity<>(offServe.getFreeOffices(), HttpStatus.OK);
+    }
+
     @GetMapping(value = "/all")
     public ResponseEntity<?> getAllOffices() {
         return new ResponseEntity<>(offServe.getAllOffices(), HttpStatus.OK);

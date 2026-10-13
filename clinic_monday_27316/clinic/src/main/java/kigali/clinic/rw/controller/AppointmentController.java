@@ -41,6 +41,23 @@ public class AppointmentController {
         return new ResponseEntity<>(returnedMessage, HttpStatus.BAD_REQUEST);
     }
 
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<?> updateStatus(@PathVariable UUID id, @RequestParam AppointmentStatus status) {
+        String result = apptServe.updateStatus(id, status);
+        if (result.equals("The appointment with that id does not exist")) return new ResponseEntity<>(result, HttpStatus.NOT_FOUND);
+        if (result.startsWith("Cannot change status")) return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @PatchMapping("/{id}/reschedule")
+    public ResponseEntity<?> reschedule(@PathVariable UUID id, @RequestParam String newDate) {
+        String result = apptServe.reschedule(id, LocalDate.parse(newDate));
+        if (result.equals("The appointment with that id does not exist")) return new ResponseEntity<>(result, HttpStatus.NOT_FOUND);
+        if (result.equals("Doctor is already booked on that date")) return new ResponseEntity<>(result, HttpStatus.CONFLICT);
+        if (result.equals("Appointment rescheduled successfully")) return new ResponseEntity<>(result, HttpStatus.OK);
+        return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
+    }
+
     @GetMapping(value = "/all")
     public ResponseEntity<?> getAllAppointments() {
         return new ResponseEntity<>(apptServe.getAllAppointments(), HttpStatus.OK);
@@ -98,9 +115,8 @@ public class AppointmentController {
     @DeleteMapping(value = "/delete/{id}")
     public ResponseEntity<?> deleteAppointment(@PathVariable UUID id) {
         String returnedMessage = apptServe.deleteAppointment(id);
-        if (returnedMessage.equals("Appointment is deleted successfully")) {
-            return new ResponseEntity<>(returnedMessage, HttpStatus.OK);
-        }
+        if (returnedMessage.equals("Appointment is deleted successfully")) return new ResponseEntity<>(returnedMessage, HttpStatus.OK);
+        if (returnedMessage.equals("That appointment has prescriptions, delete them first")) return new ResponseEntity<>(returnedMessage, HttpStatus.CONFLICT);
         return new ResponseEntity<>(returnedMessage, HttpStatus.NOT_FOUND);
     }
 }

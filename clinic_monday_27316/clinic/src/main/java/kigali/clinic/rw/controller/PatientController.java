@@ -58,6 +58,13 @@ public class PatientController {
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
+    @GetMapping("/{ssNumber}/upcoming")
+    public ResponseEntity<?> upcoming(@PathVariable String ssNumber) {
+        Object result = patServe.findUpcomingAppointments(ssNumber);
+        if (result instanceof String) return new ResponseEntity<>(result, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
     @GetMapping(value = "/{id}")
     public ResponseEntity<?> getPatientById(@PathVariable UUID id) {
         Patient patient = patServe.getPatientById(id);
