@@ -4,13 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 
 @Entity 
@@ -35,12 +35,8 @@ public class Specialization {
          return id;
      }
 
-     @ManyToMany 
-     @JoinTable (
-        name = "doctor_specialization",
-        joinColumns = @JoinColumn (name="doctor_id"),
-        inverseJoinColumns = @JoinColumn (name="specialization_id")
-     )
+     @JsonIgnore
+     @ManyToMany(mappedBy = "specializations")
      private List<Doctor> doctors = new ArrayList<>();
 
      public List<Doctor> getDoctors() {
