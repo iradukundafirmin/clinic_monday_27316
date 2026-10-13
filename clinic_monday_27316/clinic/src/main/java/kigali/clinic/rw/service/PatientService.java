@@ -9,6 +9,10 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import kigali.clinic.rw.domain.Patient;
+import kigali.clinic.rw.domain.Appointment;
+import kigali.clinic.rw.domain.AppointmentStatus;
+import java.time.LocalDate;
+import java.util.Arrays;
 import kigali.clinic.rw.repository.DoctorRepository;
 import kigali.clinic.rw.repository.PatientRepository;
 
@@ -20,6 +24,9 @@ public class PatientService {
 
     @Autowired
     private DoctorRepository docRepo;
+
+    @Autowired
+    private kigali.clinic.rw.repository.AppointmentRepository apptRepo;
 
     public String savePatient(Patient patient) {
         patRepo.save(patient);
@@ -44,6 +51,7 @@ public class PatientService {
         existing.setFirstName(patient.getFirstName());
         existing.setLastName(patient.getLastName());
         existing.setDateOfBirth(patient.getDateOfBirth());
+        existing.setSsNumber(patient.getSsNumber());
         patRepo.save(existing);
         return "Patient is updated successfully";
     }
@@ -59,6 +67,12 @@ public class PatientService {
             return "Patient cannot be deleted because it is in use";
         }
         return "Patient is deleted successfully";
+    }
+
+    public Object findUpcomingAppointments(String ssNumber) {
+        if (patRepo.findBySsNumber(ssNumber).isEmpty()) return "That patient with that ssnumber does not exist";
+        return apptRepo.findByPatientSsNumberAndAppointmentDateGreaterThanEqualAndStatusInOrderByAppointmentDateAsc(
+                ssNumber, LocalDate.now(), Arrays.asList(AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED));
     }
 
     public List<Patient> findPatientsByLastName(String lastName) {

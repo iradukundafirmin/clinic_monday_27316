@@ -50,8 +50,14 @@ public class SpecializationService {
             return "Doctor not found";
         }
 
-        specialization.setDoctors(resolved);
-        specRepo.save(specialization);
+        specialization.setDoctors(new ArrayList<>());
+        Specialization saved = specRepo.save(specialization);
+        for (Doctor doctor : resolved) {
+            if (doctor.getSpecializations().stream().noneMatch(s -> s.getId().equals(saved.getId()))) {
+                doctor.getSpecializations().add(saved);
+                docRepo.save(doctor);
+            }
+        }
         return "Specialization is saved successfully";
     }
 
@@ -76,8 +82,21 @@ public class SpecializationService {
 
         Specialization existing = found.get();
         existing.setName(specialization.getName());
-        existing.setDoctors(resolved);
         specRepo.save(existing);
+
+        // Keep the owning side (Doctor.specializations) synchronized.
+        List<Doctor> allDoctors = docRepo.findAll();
+        for (Doctor doctor : allDoctors) {
+            boolean shouldHave = resolved.stream().anyMatch(d -> d.getId().equals(doctor.getId()));
+            boolean hasIt = doctor.getSpecializations().stream().anyMatch(s -> s.getId().equals(id));
+            if (shouldHave && !hasIt) {
+                doctor.getSpecializations().add(existing);
+                docRepo.save(doctor);
+            } else if (!shouldHave && hasIt) {
+                doctor.getSpecializations().removeIf(s -> s.getId().equals(id));
+                docRepo.save(doctor);
+            }
+        }
         return "Specialization is updated successfully";
     }
 
