@@ -2,6 +2,9 @@ package kigali.clinic.rw.repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDate;
+import kigali.clinic.rw.domain.Appointment;
+import kigali.clinic.rw.domain.AppointmentStatus;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,6 +18,11 @@ import kigali.clinic.rw.domain.Doctor;
 public interface DoctorRepository extends JpaRepository<Doctor, UUID> {
 
     Optional<Doctor> findByOfficeId(UUID officeId);
+
+    boolean existsByOfficeIdAndIdNot(UUID officeId, UUID id);
+
+    @Query("SELECT d FROM Doctor d WHERE LOWER(d.firstName) LIKE LOWER(CONCAT('%', :name, '%')) OR LOWER(d.lastName) LIKE LOWER(CONCAT('%', :name, '%')) ORDER BY d.lastName ASC")
+    List<Doctor> searchByName(@Param("name") String name);
 
     @Query("""
         SELECT DISTINCT d
